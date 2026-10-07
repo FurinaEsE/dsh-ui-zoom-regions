@@ -1,0 +1,49 @@
+{
+  "name": "dsh-ui-zoom-regions",
+  "version": "1.0.0",
+  "description": "Per-region UI zoom for DeepSeek Harness: independent levels for the conversation header, the left sidebar, the conversation body and the right sidebar, driven by Ctrl + wheel, plus a thin grip that scales the conversation header down while keeping every label on screen.",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/index.js",
+    "lib/client.js",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "dsh-plugin",
+    "deepseek-harness",
+    "zoom",
+    "scale",
+    "ui",
+    "accessibility"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FurinaEsE/dsh-ui-zoom-regions.git"
+  },
+  "homepage": "https://github.com/FurinaEsE/dsh-ui-zoom-regions#readme",
+  "bugs": {
+    "url": "https://github.com/FurinaEsE/dsh-ui-zoom-regions/issues"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-runtime"
+      ],
+      "platform": "web",
+      "immediately": true
+    }
+  }
+}

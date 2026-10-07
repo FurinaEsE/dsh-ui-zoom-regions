@@ -1,0 +1,7 @@
+# dsh-ui-zoom-regions bundle layer.
+#
+# Inserts one roster row: the package declares `dsh.client` (platform: web),
+# so the dsh-client-modules node half serves lib/client.js as a browser plugin.
+- insert:
+    - id: ui-zoom-regions
+      name: 'dsh-ui-zoom-regions'
