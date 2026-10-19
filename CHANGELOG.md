@@ -1,5 +1,33 @@
 # Changelog
 
+## 1.2.1
+
+**Dragging the header's bottom edge up now really collapses it.** On top of that: cheaper dragging,
+and two silent failure modes made visible.
+
+- **Pull up = real collapse, one whole row at a time.** `min-height` is only a floor, so it can
+  never make the header shorter than its content — dragging up was a no-op in 1.2.0. Below the
+  natural height the plugin now writes `height` (and `min-height: 0`) and drops the rows that no
+  longer fit **whole**, `display: none`, tab row first and then the title row. A row that stays on
+  screen keeps its own font size, padding and share of the layout — no line is ever cut in half —
+  and the floor is still 24 px. At or above the natural height it keeps writing `min-height` only,
+  so growing still leaves the header's own layout alone. Double-click clears all of it.
+- **The drag edge moved inside the box** (`bottom: -4px` → `bottom: 0`): a band hanging outside the
+  header would be clipped away by `overflow: hidden` exactly when the user needs it to grow back.
+- **A drag no longer writes on every pointer move.** `onGripMove` only updates the inline properties;
+  `headerHeight` is persisted and the diag receipt rewritten once, on pointer up (and on
+  `pointercancel`, so an interrupted drag is not lost). Previously every pixel of the drag cost a
+  `localStorage` write plus a full DOM probe.
+- **The compensated column width survives a layout change.** `trackSize` falls back to the computed
+  `grid-template-columns` when the host stops writing the track list inline, and the diag receipt
+  records `trackSource` (`inline` / `computed`) so a silently degraded compensation is visible
+  instead of only visible as a seam in front of the splitter.
+- **Teardown no longer clears the host's inline padding.** The occupancy channel writes
+  `min-height` / `height` / `overflow` and nothing else; the padding resets left over from 1.1.x are
+  gone, along with the dead `INTRO_MS` / `introShown` / `headerBase` padding-and-min-height fields,
+  the stale "grip drives the `top` level" comment, and `headerStyle.paddingTop` in the receipt. The
+  receipt now also reports `height`, `overflow` and the measured `natural` height.
+
 ## 1.2.0
 
 The header is split into two independent channels.

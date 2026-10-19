@@ -25,9 +25,10 @@ and scales, neighbouring columns are untouched, and the splitter drag handles st
 - `Ctrl` + `+` / `=` — zoom that region in · `Ctrl` + `-` — out · `Ctrl` + `0` — reset it to 100%
 - Range 50 %–200 % for the centre column; the two sidebars (and the header's font) go
   **25 %–300 %**; wheel step 5 %, key/button step 10 %
-- The header's **bottom edge** is a second, independent control — **drag it** to change how much
-  room the header takes, **without touching the font**; double-click hands the height back to the
-  stylesheet
+- The header's **bottom edge** is a second, independent control — **drag it down** to give the
+  header more room, **drag it up** to collapse it (down to 24 px; a row that no longer fits vanishes
+  whole, so no line is ever cut in half), **without touching the font**; double-click hands the
+  height back to the stylesheet
 
 The readout in the bottom-right corner shows all four levels. It is hidden by default and only
 appears for about two seconds after a change (`pointer-events: none` while hidden, so it never
@@ -43,22 +44,28 @@ The conversation header carries **two separate channels** — this is the whole 
 | **Control** | `Ctrl` + wheel / `Ctrl` + `+ -` `0` over the header | drag the header's bottom edge |
 | **Stored in** | `dsh-ui-zoom-regions/levels` (`top`) | `dsh-ui-zoom-regions/headerHeight` (px) |
 | **Range** | 25 % – 300 % | 24 px … half the conversation panel |
-| **Effect** | title row + tab row scale | the header's `min-height` only |
+| **Effect** | title row + tab row scale | `min-height` when growing; `height` plus whole rows dropped when collapsing |
 
 They never interfere: shrinking the labels no longer shrinks the bar, and making the bar taller no
 longer enlarges the labels.
 
-**The bottom edge.** Its **entire width** is the drag target: an invisible 9 px band that paints
-nothing and only switches the cursor to `ns-resize`. No handle to hunt for.
+**The bottom edge.** Its **entire width** is the drag target: an invisible 9 px band just inside the
+bottom edge that paints nothing and only switches the cursor to `ns-resize`. No handle to hunt for.
 
 - The pointer moves the edge one pixel per pixel — drag 20 px and the header is 20 px taller or
   shorter.
+- **Dragging up really shrinks it, one whole row at a time.** `min-height` is only a floor: it can
+  never make the header shorter than its content, which is why pulling up used to do nothing at all.
+  Below the natural height the plugin writes `height` and drops the rows that no longer fit **whole**
+  (`display: none`; the tab row goes first, then the title row) — a row that stays on screen keeps
+  its own font size, its padding and its share of the layout, and nothing is ever sliced through the
+  middle of a line. `overflow: hidden` stays on only as a backstop.
 - Limits are measured on every drag: at least **24 px**, at most **half the conversation panel**
   (the panel is resolved through `*_centerCol`, then the nearest ancestor meaningfully taller than
   the header, then the window). The live numbers are recorded as `headerHeight` / `headerLimits`
   in the diag receipt.
 - **Double-click** returns the header to the stylesheet's own height (removes the inline
-  `min-height`).
+  `min-height`, `height` and `overflow`).
 
 ## Install
 
@@ -123,7 +130,8 @@ grip, persistence and readout; the upstream copyright notice is kept in [LICENSE
 - `Ctrl` + 滚轮：缩放**鼠标指针所在区域**（捕获阶段拦截，不会滚动页面）
 - `Ctrl` + `+` / `=` 放大、`Ctrl` + `-` 缩小、`Ctrl` + `0` 重置该区域
 - 中栏范围 50%–200%；**左右两个侧栏与顶栏字号 25%–300%**；滚轮步长 5%，快捷键/按钮步长 10%
-- 顶栏还有**第二条独立通道**：**拖动它的下边界**改变它占多高，**完全不动字号**；双击交还给样式表高度
+- 顶栏还有**第二条独立通道**：**向下拖**给它更多空间、**向上拖把它收起来**（最低 24px；放不下的行整行消失，
+  不会把字切成半行），**完全不动字号**；双击交还给样式表高度
 
 右下角读数默认隐藏，只在你调整时浮现约 2 秒（隐藏时不拦截点击）；最后一个按钮切换读数模式
 （自动 / 常显 / 关闭），`Ctrl + Alt + 0` 等效。模式只在当次会话有效，刷新必定回到「自动」。
@@ -137,17 +145,20 @@ grip, persistence and readout; the upstream copyright notice is kept in [LICENSE
 | **怎么调** | 悬停顶栏按 `Ctrl` + 滚轮 / `Ctrl` + `+ -` `0` | 拖动顶栏**下边界** |
 | **存在哪** | `dsh-ui-zoom-regions/levels`（`top`） | `dsh-ui-zoom-regions/headerHeight`（px） |
 | **范围** | 25% – 300% | 24px … 对话区高度的一半 |
-| **影响** | 标题行 + 标签行的缩放 | 只改顶栏自己的 `min-height` |
+| **影响** | 标题行 + 标签行的缩放 | 放大时用 `min-height`；收起时用 `height`，放不下的行整行隐藏 |
 
 两者永远不互相牵连：缩字号不会再缩矮顶栏，把顶栏拉高也不会放大文字。
 
-**下边界**：整条宽度都是拖动区 —— 一条透明 9px 带子，不画任何像素，只把光标变成 `ns-resize`，
-没有需要寻找的小把手。
+**下边界**：整条宽度都是拖动区 —— 一条透明 9px 带子，贴在顶栏内底边，不画任何像素，只把光标变成
+`ns-resize`，没有需要寻找的小把手。
 
 - 指针移动多少像素，边界就跟着走多少像素（拖 20px = 顶栏高/矮 20px）。
+- **向上拖是真收缩，而且是整行整行地收。** `min-height` 只是下限，永远没法把盒子压到比内容更矮 —— 这就是
+  以前往上拖像卡住的原因。低于自然高度时改写 `height`，放不下的行**整行隐藏**（`display:none`，先收标签行、
+  再收标题行）：留下来的行字号、内边距、占位全都不变，永远不会出现半行字。`overflow:hidden` 只作兜底。
 - 上下限每次拖动都实测：最小 **24px**，最大 **对话区高度的一半**（先取 `*_centerCol`，再沿祖先找
   明显高于顶栏的容器，最后回退窗口高度）。实际值记在 diag 回执的 `headerHeight` / `headerLimits`。
-- **双击**把顶栏交还给样式表自己的高度（移除行内 `min-height`）。
+- **双击**把顶栏交还给样式表自己的高度（移除行内 `min-height`、`height`、`overflow`）。
 
 ### 安装
 

@@ -4,6 +4,7 @@
 > 换到新会话/新电脑时，先读它能省掉重新摸索。
 >
 > 生成时间：2026-10-19 · 对应版本 **1.2.0** · 仓库提交 `5074b31`
+> （之后另有未发布的 **1.2.1** 维护改动，见 §5 第 9 条）
 
 ---
 
@@ -34,13 +35,18 @@ dsh plugin --profile desktop add file:D:\projects\dsh-ui-zoom-regions   # 本地
 
 ```
 GitHub  main = 5074b31   (feat(1.2.0): header font and header occupancy are separate channels)
+                             之后有 a75aa06 docs: add PROJECT-CONTEXT.md and refresh PUBLISH.md status
 npm     latest = 1.2.0   versions: 0.0.0-stage(占位), 1.1.0, 1.1.1, 1.2.0
 市场    PR #8027 open / mergeable clean / CI: check=success, Submission gate=neutral
+本地    D 盘克隆 = a75aa06 + 未提交的 1.2.1 维护改动（package.json / client.js / CHANGELOG 已到 1.2.1，未发布）
 ```
 
-- **本机安装方式**：`C:\Users\Cannee1\.dsh\profiles\desktop` 里是 `file:` 依赖，指向
-  `C:\Users\Cannee1\.dsh\plugins\dsh-ui-zoom-regions`；pnpm 把内容**拷贝**进 `node_modules`，
-  所以**改完源码必须同步一份到 `node_modules`**，否则页面拿到的还是旧包。
+- **本机安装方式**：`C:\Users\Cannee1\.dsh\profiles\desktop` 里是 `file:` 依赖，**指向本仓库
+  `D:\projects\dsh-ui-zoom-regions`**（2026-10-19 实测，原文档写的 `.dsh\plugins\...` 是过时的）；
+  pnpm 把内容**拷贝**进 `profiles\desktop\node_modules\dsh-ui-zoom-regions`（nlink=1，普通拷贝），
+  所以**改完源码必须同步一份到那个 `node_modules` 目录**，否则页面拿到的还是旧包。
+  `C:\Users\Cannee1\.dsh\plugins\dsh-ui-zoom-regions` 是早先的克隆，**已无任何 profile 引用**，
+  内容停在 1.2.0，别改错地方。
 - 本项目在 **D 盘的这份克隆** 是同一提交，`origin` 已配好，可以直接在这里开发 + `git push`。
 
 ---
@@ -62,17 +68,19 @@ npm     latest = 1.2.0   versions: 0.0.0-stage(占位), 1.1.0, 1.1.1, 1.2.0
 
 ### 3.2 顶栏的第二条通道（鼠标拖动）
 
-顶栏**整条下边界**是拖动区：一条 `left:0;right:0;bottom:-4px;height:9px` 的**透明**带子，不画任何像素，只把光标变成 `ns-resize`。
+顶栏**整条下边界**是拖动区：一条 `left:0;right:0;bottom:0;height:9px` 的**透明**带子（贴在盒内底边，因为收起时会被 `overflow:hidden` 裁掉），不画任何像素，只把光标变成 `ns-resize`。
 
 | | 字号 | 占多高 |
 |---|---|---|
 | 怎么调 | `Ctrl` + 滚轮（悬停顶栏） | 拖下边界 |
 | 存哪 | `levels.top` | `headerHeight`（px，独立 key） |
 | 范围 | 25% – 300% | 24px … 对话区高度的一半 |
-| 影响面 | 只缩放标题行 + 标签行 | 只写 `min-height` |
+| 影响面 | 只缩放标题行 + 标签行 | 放大用 `min-height`；收起时改 `height`，放不下的行整行隐藏 |
 | 复位 | `Ctrl + 0` / 点读数里的「顶」 | 双击边界 |
 
 **两者绝不互相牵连**：缩字号不会缩矮顶栏，拉高顶栏不会放大文字。这是 1.2.0 的核心。
+
+**向上拖是真收缩，整行整行地收**（1.2.1 修）：`min-height` 只是下限，压不到内容高以下，所以 1.2.0 往上拖其实是空操作。现在低于自然高度时改 `height`（+ `min-height:0`），把放不下的行**整行 `display:none`**（先标签行、再标题行），留下的行字号/内边距/占位都不变，不会出现半行字；最低 24px，`overflow:hidden` 只作兜底。
 
 拖动 1:1（指针 20px = 顶栏 20px）；上下限每次按下实测（对话区取 `*_centerCol` → 沿祖先找明显高于顶栏的容器 → 窗口高度）。
 
@@ -88,10 +96,11 @@ npm     latest = 1.2.0   versions: 0.0.0-stage(占位), 1.1.0, 1.1.1, 1.2.0
 | `readLevels` / `saveLevels` / `readHeaderHeight` / `saveHeaderHeight` | 持久化 |
 | `createZoomControls(t)` | 整个插件的装配点：状态、样式、读数、监听 |
 | `resolveTop / resolveCenter / resolveHeader` | 三个区域的元素解析 + 顶栏容器（`closest("header")`，跳过 `display:contents`） |
-| `measureHeaderBase` | 顶栏**自然高度**（把已应用的字号 zoom 除掉） |
+| `measureHeaderBase` | 顶栏**自然高度**（把已应用的字号 zoom 除掉；只留 `{height}`） |
 | `measureHeaderLimits` | 拖动的上下限（px），每次按下重测 |
-| `applyHeaderMetrics` / `setHeaderHeight` | 只写 `min-height`；持久化 + diag + 读数闪一下 |
-| `onGripDown / Move / Up / Reset` | 边界拖动（px 通道） |
+| `applyHeaderMetrics` / `setHeaderHeight` | 两条写路径：放大写 `min-height`，低于自然高写 `height` 并调 `applyHeaderRows`；持久化 + diag + 读数闪一下 |
+| `applyHeaderRows` / `showAllHeaderRows` | 收起时把放不下的行整行 `display:none`（后缀式，先标签行再标题行），`hiddenRows` 记录自己隐藏过谁 |
+| `onGripDown / Move / Up / Reset` | 边界拖动（px 通道）；Move 只改行内属性，Up/Cancel 才落盘 |
 | `wantedZoom` | 字号通道（顶栏还要除以中栏比例，抵消 zoom 相乘） |
 | `applyTrackWidth` | 侧栏缩放后补偿宽度，让栏盒仍与 grid track 对齐 |
 | `applyRegion / applyAll / setLevel / sync` | 应用与 700ms 兜底重同步 |
@@ -117,6 +126,7 @@ npm     latest = 1.2.0   versions: 0.0.0-stage(占位), 1.1.0, 1.1.1, 1.2.0
 6. **删掉小方块** —— 从 64×6 的圆角把手改成"整条下边界"的透明带（含删掉 hover 变蓝、intro 闪烁、`@keyframes`）。
 7. **侧栏缩放范围放宽到 25%–300%** —— `REGION_BOUNDS` 按区域配置。
 8. **1.2.0：顶栏拆成两条通道** —— 字号（Ctrl）与占用（拖动）各自独立存储、互不影响。
+9. **1.2.1：向上拖真收缩（整行隐藏）+ 三处维护改动** —— ① **`min-height` 只是下限，压不到内容高以下**，所以 1.2.0 往上拖是空操作；低于自然高度时改 `height`（`min-height:0`），放不下的行**整行 `display:none`**（先标签行再标题行），留下的行字号/内边距/占位不变、不切半行，最低 24px，`overflow:hidden` 仅兜底；`hiddenRows` 只恢复自己藏过的行（同步丢出区域、header 重挂、teardown 都会恢复）。拖动带从 `bottom:-4px` 挪到 `bottom:0`，否则收起时被裁掉、再也拉不回来；② 拖动时每个 pointermove 只改行内属性，`headerHeight` 落盘与 diag 回执挪到 `pointerup`（含 `pointercancel`）：之前每像素一次 localStorage 写 + 全量 DOM 探针；③ `trackSize` 在行内 `grid-template-columns` 缺失时回退到 computed，并把 `trackSource`（`inline`/`computed`）写进 diag，避免宿主改用 class/CSS 变量后补宽静默失效只表现为一道缝；④ 清掉 1.2.0 遗留的死代码（`INTRO_MS`、`introShown`、`headerBase` 的 min-height/padding 字段、`headerStyle.paddingTop`），并修掉 teardown 会**清掉宿主行内 padding** 的隐患。
 
 ---
 

@@ -1,6 +1,6 @@
 {
   "name": "dsh-ui-zoom-regions",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Per-region UI zoom for DeepSeek Harness, with a two-channel header: Ctrl + wheel scales the header font (25 %-300 %), dragging the header bottom edge changes how much room the header takes (24 px up to half the conversation panel) without touching the font. The sidebars zoom 25 %-300 %; the centre column 50 %-200 %.",
   "type": "module",
   "main": "lib/index.js",
