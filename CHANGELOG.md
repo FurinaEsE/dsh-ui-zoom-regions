@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.1
+
+First registry publish. Identical code to 1.1.0, which stayed in npm staging: a granular
+token with bypass-2FA stages a brand-new package, and that staged version never showed up
+for approval on this account. Bumped to get a clean, directly published release.
+
 ## 1.1.0
 
 The header's resize handle is gone; the header's whole bottom edge is the handle now, and it resizes
