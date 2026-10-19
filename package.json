@@ -1,7 +1,7 @@
 {
   "name": "dsh-ui-zoom-regions",
-  "version": "1.1.1",
-  "description": "Per-region UI zoom for DeepSeek Harness: independent levels for the conversation header, the left sidebar, the conversation body and the right sidebar (keep the columns as wide as they are), plus a full-width invisible boundary on the header footer that resizes the header by dragging — shrink to 25 %, grow up to half the conversation panel, label size unchanged while growing.",
+  "version": "1.2.0",
+  "description": "Per-region UI zoom for DeepSeek Harness, with a two-channel header: Ctrl + wheel scales the header font (25 %-300 %), dragging the header bottom edge changes how much room the header takes (24 px up to half the conversation panel) without touching the font. The sidebars zoom 25 %-300 %; the centre column 50 %-200 %.",
   "type": "module",
   "main": "lib/index.js",
   "exports": {

@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.2.0
+
+The header is split into two independent channels.
+
+- **Ctrl + wheel scales the font; dragging the bottom edge changes the occupancy.** `levels.top`
+  is now font-only (25 %-300 %, title row + tab row), and the header height is a separate
+  persisted pixel value (`dsh-ui-zoom-regions/headerHeight`). Shrinking the labels no longer
+  shrinks the bar; growing the bar no longer grows the labels.
+- The drag is one pixel per pixel, clamped to `[24px, half the conversation panel]`, measured on
+  every drag. Double-click removes the inline `min-height` and hands the header back to the
+  stylesheet.
+- `applyHeaderMetrics` writes exactly one property now (`min-height`); the padding scaling and the
+  font-multiplier branch from 1.1.x are gone.
+- `clampStored` retired: the header no longer needs a wider storage bound, because its font bounds
+  match the live ones.
+- The diag receipt reports `headerHeight` / `headerLimits` instead of `headerCeiling`.
+
 ## 1.1.1
 
 First registry publish. Identical code to 1.1.0, which stayed in npm staging: a granular
