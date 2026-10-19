@@ -1,10 +1,17 @@
 # Publishing dsh-ui-zoom-regions
 
-Everything in this directory is release-ready. Two things are **not** done, because both need your
-account — nothing here is published yet:
-
-1. the GitHub repository (needed by the registry entry), and
-2. optionally an npm release.
+> **STATUS — done as of 2026-10-19.** The repository exists and is public
+> (`FurinaEsE/dsh-ui-zoom-regions`), npm is published (`latest = 1.2.0`), and the market entry is an
+> open PR ([#8027](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/pull/8027)) with green CI,
+> waiting on a maintainer merge. The steps below are kept as the release runbook — read them as
+> "how it was done", not "what is left".
+>
+> One correction to the original text below: a first publish with a bypass-2FA granular token is
+> **staged** — the registry only shows a `0.0.0-stage` placeholder, the real version waits in
+> staging, and it may not appear on the Staged Packages page at all (it did not, here). It went live
+> only after the package's *Publishing access* was switched to **"Require two-factor authentication
+> or a granular access token with bypass 2fa enabled"** (package → Settings). The CLI cannot do it:
+> `npm access set mfa=automation` answers 403 with a bypass token.
 
 ## 0. Placeholder — already filled
 
